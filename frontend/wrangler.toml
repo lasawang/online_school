@@ -1,28 +1,4 @@
-# Cloudflare Pages 前端部署配置
-# IT学习课程平台
-
-name = "it-learning-platform-frontend"
+# Cloudflare Pages 前端配置
+name = "it-learning-platform"
 compatibility_date = "2024-12-13"
-
-# Pages 项目配置
 pages_build_output_dir = "dist"
-
-# 构建配置
-[build]
-command = "npm run build"
-cwd = "."
-
-# 环境变量
-[vars]
-VITE_API_BASE_URL = "https://api.yourdomain.com"
-VITE_WS_URL = "https://api.yourdomain.com"
-
-# 生产环境
-[env.production]
-name = "it-learning-platform-frontend"
-vars = { VITE_API_BASE_URL = "https://api.yourdomain.com" }
-
-# 预览环境
-[env.preview]
-name = "it-learning-platform-frontend-preview"
-vars = { VITE_API_BASE_URL = "https://api-preview.yourdomain.com" }
