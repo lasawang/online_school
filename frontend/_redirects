@@ -1,0 +1,7 @@
+# Cloudflare Pages 重定向配置
+
+# API 代理 - 代理到后端 API
+/api/*  https://api.yourdomain.com/api/:splat  200
+
+# SPA 路由 - 所有前端路由都返回 index.html
+/*  /index.html  200

@@ -1,0 +1,16 @@
+# Cloudflare Pages 配置文件
+# IT学习课程平台 - 前端部署
+
+name = "it-learning-platform"
+compatibility_date = "2024-12-13"
+
+# Pages 配置
+pages_build_output_dir = "frontend/dist"
+
+# 环境变量（生产环境）
+[env.production]
+vars = { VITE_API_BASE_URL = "https://api.yourdomain.com" }
+
+# 环境变量（预览环境）
+[env.preview]
+vars = { VITE_API_BASE_URL = "https://api-preview.yourdomain.com" }
