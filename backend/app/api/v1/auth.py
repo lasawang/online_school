@@ -254,3 +254,34 @@ def update_user_status(
 
 
 
+
+@router.put("/profile", response_model=UserResponse, summary="更新个人信息")
+def update_profile(
+    profile_data: dict,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    更新个人信息
+    """
+    # 可更新的字段
+    allowed_fields = ['full_name', 'email', 'phone', 'avatar']
+    
+    # 如果要修改邮箱，检查是否已被使用
+    if 'email' in profile_data and profile_data['email'] != current_user.email:
+        existing_user = db.query(User).filter(User.email == profile_data['email']).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="该邮箱已被使用"
+            )
+    
+    # 更新字段
+    for field, value in profile_data.items():
+        if field in allowed_fields and value is not None:
+            setattr(current_user, field, value)
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return current_user
