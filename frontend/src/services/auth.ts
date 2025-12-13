@@ -33,11 +33,9 @@ export const authApi = {
   changePassword(data: { old_password: string; new_password: string }) {
     return api.post('/api/v1/auth/change-password', data)
   },
-  },
 
   // 更新用户信息
   updateProfile(data: Partial<RegisterData>) {
     return api.put('/api/v1/auth/profile', data)
   },
 }
-
