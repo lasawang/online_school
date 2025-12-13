@@ -1,0 +1,168 @@
+.course-list-content {
+  padding: 0;
+  background: #FBF9F9;
+  min-height: calc(100vh - 70px);
+}
+
+/* Hero Section */
+.hero-section {
+  background: linear-gradient(135deg, #1935CA 0%, #5872FA 100%);
+  padding: 60px 40px;
+  color: white;
+  text-align: center;
+}
+
+.hero-text h1 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 36px;
+  margin-bottom: 12px;
+  color: #FFFFFF;
+}
+
+.hero-text p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 30px;
+}
+
+.search-box {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.hero-search {
+  border-radius: 50px;
+  padding: 12px 24px;
+  font-size: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.hero-search .ant-input {
+  font-family: 'Poppins', sans-serif;
+}
+
+/* Popular Tags */
+.popular-tags {
+  padding: 25px 40px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.tags-label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #696F79;
+  margin-right: 10px;
+}
+
+.popular-tag {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  border: 1px solid #E0E0E0;
+  background: #FFFFFF;
+  color: #696F79;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.popular-tag:hover,
+.popular-tag.active {
+  background: #1935CA;
+  color: #FFFFFF;
+  border-color: #1935CA;
+}
+
+/* Category Tabs */
+.category-tabs {
+  padding: 0 40px;
+  background: #FFFFFF;
+  margin-bottom: 30px;
+}
+
+.category-tabs .ant-tabs-nav {
+  margin: 0;
+  padding: 15px 0;
+}
+
+.category-tabs .ant-tabs-tab {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #696F79;
+  padding: 12px 24px;
+}
+
+.category-tabs .ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #1935CA;
+}
+
+.category-tabs .ant-tabs-ink-bar {
+  background: #1935CA;
+  height: 3px;
+}
+
+/* Course Grid */
+.course-list-content > .ant-row {
+  padding: 30px 40px;
+}
+
+/* Load More */
+.load-more {
+  text-align: center;
+  padding: 20px 40px 40px;
+}
+
+.load-more .ant-btn {
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  padding: 0 40px;
+  height: 45px;
+}
+
+/* Loading & Empty */
+.loading-container,
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+  padding: 40px;
+}
+
+.course-grid {
+  padding: 0 40px 30px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .hero-section {
+    padding: 40px 20px;
+  }
+
+  .hero-text h1 {
+    font-size: 28px;
+  }
+
+  .hero-text p {
+    font-size: 16px;
+  }
+
+  .popular-tags,
+  .category-tabs,
+  .course-list-content > .ant-row {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
+

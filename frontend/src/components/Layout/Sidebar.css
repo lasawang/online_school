@@ -1,0 +1,138 @@
+.custom-sidebar {
+  background: #FFFFFF !important;
+  box-shadow: 2px 0 6px 1px rgba(237, 237, 237, 0.5);
+  padding: 20px 0;
+  height: 100vh;
+  position: fixed;
+  left: 0;
+  top: 0;
+  overflow-y: auto;
+}
+
+.sidebar-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 0 15px;
+}
+
+.sidebar-menu {
+  border-right: none;
+  font-family: 'Poppins', sans-serif;
+}
+
+.sidebar-menu .ant-menu-item {
+  border-radius: 8px;
+  margin: 8px 0;
+  font-weight: 600;
+  font-size: 14px;
+  color: #696F79;
+  height: 45px;
+  display: flex;
+  align-items: center;
+}
+
+.sidebar-menu .ant-menu-item-selected {
+  background-color: #1935CA !important;
+  color: #FFFFFF !important;
+}
+
+.sidebar-menu .ant-menu-item-selected .anticon {
+  color: #FFFFFF !important;
+}
+
+.sidebar-menu .ant-menu-item:hover {
+  background-color: rgba(25, 53, 202, 0.1);
+}
+
+.sidebar-menu .anticon {
+  font-size: 18px;
+}
+
+/* Support Card */
+.support-card {
+  background: #1935CA;
+  border-radius: 11px;
+  padding: 20px;
+  margin: 20px 0;
+  text-align: center;
+  color: #FFFFFF;
+}
+
+.support-icon {
+  width: 50px;
+  height: 50px;
+  background: rgba(88, 114, 250, 0.5);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 15px;
+}
+
+.support-emoji {
+  font-size: 24px;
+}
+
+.support-card h4 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #FFFFFF;
+  margin-bottom: 5px;
+}
+
+.support-card p {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 15px;
+}
+
+.support-btn {
+  background: #EDEDED;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 20px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 12px;
+  color: #1935CA;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.support-btn:hover {
+  background: #FFFFFF;
+}
+
+/* Logout Section */
+.logout-section {
+  margin-top: auto;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #696F79;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.3s;
+}
+
+.logout-section:hover {
+  background: rgba(255, 114, 98, 0.1);
+  color: #FF7262;
+}
+
+.logout-section .anticon {
+  font-size: 18px;
+}
+
+.logout-section span {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+

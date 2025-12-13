@@ -1,0 +1,102 @@
+.profile-content {
+  padding: 30px;
+  background: var(--background-color);
+  min-height: calc(100vh - 70px);
+}
+
+.profile-header {
+  margin-bottom: 30px;
+}
+
+.profile-header h1 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.profile-header h1 .anticon {
+  color: var(--primary-color);
+}
+
+.profile-header p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.avatar-card {
+  border-radius: 12px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+  text-align: center;
+}
+
+.avatar-section {
+  padding: 20px 0;
+}
+
+.avatar-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.upload-btn {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+}
+
+.avatar-section h2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 20px;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+
+.avatar-section p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+}
+
+.role-tag {
+  display: inline-block;
+  background: rgba(25, 53, 202, 0.1);
+  color: var(--primary-color);
+  padding: 4px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.info-card {
+  border-radius: 12px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+}
+
+.info-card .ant-tabs-tab {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+}
+
+.info-card .ant-form-item-label > label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.info-card .ant-input-affix-wrapper,
+.info-card .ant-input {
+  border-radius: 8px;
+}
+
+.info-card .ant-btn {
+  border-radius: 8px;
+}

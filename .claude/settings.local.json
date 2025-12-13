@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(python test_db_connection.py:*)",
+      "Bash(/worker/backend/venv/Scripts/python.exe:*)",
+      "mcp__mysql__execute_sql",
+      "Bash(netstat:*)",
+      "Bash(curl:*)",
+      "Bash(taskkill //F //IM python.exe)",
+      "Bash(pkill:*)",
+      "Bash(xargs kill:*)",
+      "Bash(find:*)",
+      "Bash(cat:*)",
+      "Bash(xargs:*)",
+      "Bash(./venv/Scripts/python.exe -m pip install:*)",
+      "Bash(npm install:*)",
+      "Bash(taskkill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

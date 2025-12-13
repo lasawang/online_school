@@ -1,0 +1,6 @@
+{
+    "env": {
+      "ANTHROPIC_BASE_URL": "https://xl1.inshen.qzz.io",
+      "ANTHROPIC_AUTH_TOKEN":"sk-OslJTQynHdTUkYe5ywaa4GyHRphciGyKRdW4tTSPYsTMF9QM"
+    }
+}

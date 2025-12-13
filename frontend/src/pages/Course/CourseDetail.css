@@ -1,0 +1,349 @@
+.course-detail-content {
+  padding: 30px;
+  background: #FBF9F9;
+  min-height: calc(100vh - 70px);
+}
+
+/* Course Cover Section */
+.course-cover-section {
+  position: relative;
+  margin-bottom: 20px;
+  overflow: hidden;
+  border-radius: 12px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+}
+
+.course-cover-section img {
+  display: block;
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+}
+
+/* Video Section */
+.video-section {
+  position: relative;
+  margin-bottom: 20px;
+}
+
+.video-progress-info {
+  position: absolute;
+  bottom: 60px;
+  left: 20px;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(10px);
+  color: #FFC6B1;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Course Header Card */
+.course-header-card {
+  border-radius: 12px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+  margin-bottom: 20px;
+}
+
+.course-title {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 24px;
+  color: #181B1A;
+  margin-bottom: 15px;
+}
+
+.course-stats-row {
+  display: flex;
+  gap: 24px;
+  margin-bottom: 20px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid #F5F5F5;
+}
+
+.stat-item {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #DFDFE3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stat-item.rating {
+  color: #6FD181;
+}
+
+.stat-item .anticon {
+  font-size: 16px;
+}
+
+/* Teacher Info */
+.teacher-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.teacher-info h4 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #181B1A;
+  margin: 0;
+}
+
+.teacher-info p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #696F79;
+  margin: 4px 0 0 0;
+}
+
+/* Tabs Card */
+.course-tabs-card {
+  border-radius: 12px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+}
+
+.course-tabs-card .ant-tabs-tab {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Course Intro */
+.course-intro h3 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #181B1A;
+  margin: 20px 0 12px 0;
+}
+
+.course-intro h3:first-child {
+  margin-top: 0;
+}
+
+.course-intro p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #696F79;
+  line-height: 1.7;
+}
+
+.course-intro ul {
+  padding-left: 24px;
+}
+
+.course-intro li {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #696F79;
+  line-height: 1.8;
+}
+
+.course-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.meta-label {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 13px;
+  color: #696F79;
+}
+
+.meta-value {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #181B1A;
+}
+
+/* Comments */
+.comment-item {
+  padding: 20px 0;
+  border-bottom: 1px solid #F5F5F5;
+}
+
+.comment-item:last-child {
+  border-bottom: none;
+}
+
+.comment-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.comment-user {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #181B1A;
+}
+
+.comment-time {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #B3B6B6;
+}
+
+.comment-rating {
+  margin-bottom: 8px;
+}
+
+.comment-content {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  color: #696F79;
+  margin: 8px 0;
+}
+
+/* Chapters Card */
+.chapters-card {
+  border-radius: 12px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+  position: sticky;
+  top: 90px;
+}
+
+.chapters-card h2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 18px;
+  color: #181B1A;
+  margin-bottom: 16px;
+}
+
+.course-progress {
+  margin-bottom: 24px;
+}
+
+.course-progress p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #696F79;
+  margin-top: 8px;
+}
+
+/* Chapters Collapse */
+.chapters-collapse {
+  margin-bottom: 20px;
+}
+
+.chapters-collapse .ant-collapse-header {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  color: #181B1A;
+  padding: 12px 0;
+}
+
+.chapter-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.chapter-header .anticon {
+  color: #1935CA;
+  font-size: 16px;
+}
+
+/* Section Item */
+.section-item {
+  padding: 12px 0;
+  border-bottom: 1px solid #F5F5F5;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.section-item:hover {
+  background: rgba(25, 53, 202, 0.05);
+  border-radius: 8px;
+  padding-left: 12px;
+  padding-right: 12px;
+}
+
+.section-item:last-child {
+  border-bottom: none;
+}
+
+.section-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+}
+
+.section-icon {
+  font-size: 18px;
+  color: #696F79;
+  flex-shrink: 0;
+}
+
+.section-icon.completed {
+  color: #6FD181;
+}
+
+.section-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex: 1;
+}
+
+.section-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #181B1A;
+}
+
+.section-item.completed .section-title {
+  color: #696F79;
+}
+
+.section-duration {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  color: #B3B6B6;
+}
+
+/* Start Quiz Button */
+.start-quiz-btn {
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  height: 45px;
+  margin-top: 20px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .chapters-card {
+    position: relative;
+    top: 0;
+  }
+
+  .course-meta-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+

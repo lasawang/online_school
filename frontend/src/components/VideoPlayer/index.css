@@ -1,0 +1,57 @@
+.video-player-wrapper {
+  position: relative;
+  background: #000000;
+  width: 100%;
+}
+
+.video-player-wrapper .video-js {
+  width: 100%;
+}
+
+/* 自定义播放器样式 */
+.video-js .vjs-big-play-button {
+  border-radius: 50%;
+  background-color: rgba(25, 53, 202, 0.8);
+  border: none;
+  width: 80px;
+  height: 80px;
+  line-height: 80px;
+  font-size: 40px;
+}
+
+.video-js .vjs-big-play-button:hover {
+  background-color: rgba(25, 53, 202, 1);
+}
+
+.video-js .vjs-control-bar {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0) 0%,
+    rgba(0, 0, 0, 0.8) 100%
+  );
+  backdrop-filter: blur(10px);
+}
+
+.video-js .vjs-play-progress {
+  background-color: #1935CA;
+}
+
+.video-js .vjs-volume-level {
+  background-color: #1935CA;
+}
+
+.video-js .vjs-progress-control:hover .vjs-progress-holder {
+  font-size: 1.5em;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .video-js .vjs-big-play-button {
+    width: 60px;
+    height: 60px;
+    line-height: 60px;
+    font-size: 30px;
+  }
+}
+
+

@@ -1,0 +1,291 @@
+.dashboard-content {
+  padding: 30px;
+  background: #FBF9F9;
+  min-height: calc(100vh - 70px);
+}
+
+.welcome-section {
+  background: linear-gradient(135deg, #1935CA 0%, #5872FA 100%);
+  border-radius: 16px;
+  padding: 30px;
+  margin-bottom: 30px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  color: white;
+  box-shadow: 0px 8px 20px rgba(25, 53, 202, 0.3);
+}
+
+.welcome-text h1 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 28px;
+  color: #FFFFFF;
+  margin-bottom: 8px;
+}
+
+.welcome-text p {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 15px;
+}
+
+.user-level {
+  display: flex;
+  gap: 10px;
+}
+
+.level-badge {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  padding: 6px 16px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.progress-circle {
+  padding: 10px;
+}
+
+/* Statistics Cards */
+.stat-card {
+  border-radius: 12px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+  border: none;
+  height: 100%;
+}
+
+.stat-card .ant-card-body {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.stat-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stat-card .ant-statistic-title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 13px;
+  color: #696F79;
+  margin-bottom: 5px;
+}
+
+.stat-card .ant-statistic-content {
+  font-family: 'Poppins', sans-serif;
+  font-size: 24px;
+}
+
+/* Section Header */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.section-header h2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 20px;
+  color: #181B1A;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.section-header a {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-size: 14px;
+  color: #1935CA;
+  text-decoration: none;
+}
+
+.section-header a:hover {
+  text-decoration: underline;
+}
+
+/* Online Users */
+.online-users-section {
+  margin-top: 30px;
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+}
+
+.online-users-section h3 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #1935CA;
+  margin-bottom: 15px;
+}
+
+.online-users {
+  display: flex;
+  gap: -8px;
+}
+
+.user-avatar-wrapper {
+  margin-left: -8px;
+}
+
+.user-avatar-wrapper:first-child {
+  margin-left: 0;
+}
+
+.user-avatar-wrapper .ant-avatar {
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.more-users {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #1935CA;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  border: 3px solid #FFFFFF;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Reminders Card */
+.reminders-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+  margin-bottom: 20px;
+}
+
+.reminders-card h2 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 18px;
+  color: #181B1A;
+  margin-bottom: 20px;
+}
+
+.reminder-item {
+  border-bottom: 1px solid #F5F5F5;
+  padding: 12px 0;
+}
+
+.reminder-item:last-child {
+  border-bottom: none;
+}
+
+.reminder-content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  width: 100%;
+}
+
+.reminder-icon {
+  width: 40px;
+  height: 40px;
+  background: rgba(25, 53, 202, 0.1);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.reminder-icon .anticon {
+  color: #1935CA;
+  font-size: 18px;
+}
+
+.reminder-text h4 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  font-size: 14px;
+  color: #181B1A;
+  margin: 0 0 4px 0;
+}
+
+.reminder-text p {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 400;
+  font-size: 12px;
+  color: #B3B6B6;
+  margin: 0;
+}
+
+.reminder-text p.due-today {
+  color: #1935CA;
+  font-weight: 500;
+}
+
+/* Achievements Card */
+.achievements-card {
+  background: #FFFFFF;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0px 5px 14px 2px rgba(237, 237, 237, 1);
+}
+
+.achievements-card h3 {
+  font-family: 'Poppins', sans-serif;
+  font-weight: 600;
+  font-size: 16px;
+  color: #181B1A;
+  margin-bottom: 15px;
+}
+
+.badges {
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+}
+
+.badge {
+  width: 60px;
+  height: 60px;
+  background: #F5F5F5;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.badge:hover {
+  transform: scale(1.1);
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+  .welcome-section {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .welcome-text {
+    margin-bottom: 20px;
+  }
+}
+
+
