@@ -224,3 +224,37 @@ def remove_student_from_course(
     db.commit()
 
     return {"message": "成功移除学员"}
+
+
+@router.get("/stats")
+def get_admin_stats(
+    current_admin: User = Depends(require_admin),
+    db: Session = Depends(get_db)
+):
+    """获取管理员统计数据"""
+    # 统计用户数
+    total_users = db.query(User).count()
+    total_students = db.query(User).filter(User.role == UserRole.STUDENT).count()
+    total_teachers = db.query(User).filter(User.role == UserRole.TEACHER).count()
+    
+    # 统计课程数
+    total_courses = db.query(Course).count()
+    published_courses = db.query(Course).filter(Course.status == "PUBLISHED").count()
+    
+    # 统计报名数
+    total_enrollments = db.query(CourseEnrollment).count()
+    
+    # 统计通知数
+    total_notifications = db.query(Notification).count()
+    unread_notifications = db.query(Notification).filter(Notification.is_read == False).count()
+    
+    return {
+        "total_users": total_users,
+        "total_students": total_students,
+        "total_teachers": total_teachers,
+        "total_courses": total_courses,
+        "published_courses": published_courses,
+        "total_enrollments": total_enrollments,
+        "total_notifications": total_notifications,
+        "unread_notifications": unread_notifications
+    }

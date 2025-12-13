@@ -40,8 +40,8 @@ class User(Base):
     live_messages = relationship("LiveChatMessage", back_populates="user", cascade="all, delete-orphan")
     enrollments = relationship("CourseEnrollment", back_populates="user", cascade="all, delete-orphan")
     # notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan", foreign_keys="Notification.user_id")
-    # wallet = relationship("Wallet", back_populates="user", uselist=False, cascade="all, delete-orphan")
-    # lives = relationship("Live", back_populates="teacher", cascade="all, delete-orphan")
+    wallet = relationship("Wallet", back_populates="user", uselist=False, cascade="all, delete-orphan")
+    lives = relationship("Live", back_populates="teacher", cascade="all, delete-orphan")
     
     def __repr__(self):
         return f"<User(id={self.id}, username='{self.username}', role='{self.role}')>"
