@@ -29,15 +29,15 @@ class Notification(Base):
     is_read = Column(Boolean, default=False, index=True, comment="是否已读")
     sender_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, comment="发送者ID")
     course_id = Column(Integer, ForeignKey("courses.id", ondelete="SET NULL"), nullable=True, comment="关联课程ID")
-    live_id = Column(Integer, ForeignKey("lives.id", ondelete="SET NULL"), nullable=True, comment="关联直播ID")
+    live_id = Column(Integer, ForeignKey("live_rooms.id", ondelete="SET NULL"), nullable=True, comment="关联直播ID")
     created_at = Column(TIMESTAMP, server_default=func.now(), index=True, comment="创建时间")
     read_at = Column(TIMESTAMP, nullable=True, comment="阅读时间")
 
     # 关系
-    user = relationship("User", back_populates="notifications", foreign_keys=[user_id])
+    user = relationship("User", foreign_keys=[user_id])
     sender = relationship("User", foreign_keys=[sender_id])
     course = relationship("Course")
-    live = relationship("Live")
+    live = relationship("LiveRoom")
 
     def __repr__(self):
         return f"<Notification(id={self.id}, user_id={self.user_id}, title='{self.title}', is_read={self.is_read})>"
