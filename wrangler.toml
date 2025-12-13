@@ -1,6 +1,8 @@
-# Cloudflare Pages 配置
+# Cloudflare Workers for Platform 配置
 name = "it-learning-platform"
+main = "worker.js"
 compatibility_date = "2024-12-13"
 
-# 指定这是一个 Pages 项目，不是 Worker
-pages_build_output_dir = "frontend/dist"
+# 资产配置
+[assets]
+directory = "frontend/dist"
