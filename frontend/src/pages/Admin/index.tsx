@@ -117,7 +117,10 @@ function AdminComplete() {
 
   const fetchCourses = async () => {
     try {
-      const response: any = await courseApi.getCourses({ page: 1, page_size: 100, status: undefined })
+      // 管理后台需要获取所有状态的课程（包括草稿），使用show_all=true参数
+      const response: any = await api.get('/api/v1/courses', { 
+        params: { page: 1, page_size: 100, show_all: true } 
+      })
       setCourses(response.items || [])
     } catch (error) {
       console.error('获取课程失败:', error)

@@ -52,12 +52,15 @@ def get_courses(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     category_id: Optional[int] = None,
-    status: Optional[CourseStatus] = None,
+    status: Optional[str] = None,
     keyword: Optional[str] = None,
+    show_all: bool = Query(False, description="显示所有状态（包括草稿）"),
     db: Session = Depends(get_db)
 ):
     """
     获取课程列表
+    - show_all=true: 显示所有状态的课程（用于管理后台）
+    - show_all=false: 只显示已发布的课程（用于前台）
     """
     query = db.query(Course)
     
@@ -65,10 +68,15 @@ def get_courses(
     if category_id:
         query = query.filter(Course.category_id == category_id)
     
+    # 状态过滤逻辑
     if status:
-        query = query.filter(Course.status == status)
-    else:
-        # 默认只显示已发布的课程
+        # 如果明确指定了状态，则按状态过滤
+        try:
+            query = query.filter(Course.status == CourseStatus(status))
+        except ValueError:
+            pass  # 忽略无效的状态值
+    elif not show_all:
+        # 如果没有指定状态且不显示全部，则默认只显示已发布的课程（前台）
         query = query.filter(Course.status == CourseStatus.PUBLISHED)
     
     if keyword:
