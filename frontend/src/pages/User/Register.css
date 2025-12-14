@@ -71,13 +71,14 @@
   align-items: center;
   justify-content: center;
   padding: 20px;
-  overflow-y: auto;
-  max-height: 100vh;
+  overflow: hidden;
 }
 
 .register-card {
   width: 100%;
   max-width: 420px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
   border-radius: 16px;
   box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
   padding: 20px;

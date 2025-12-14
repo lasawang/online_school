@@ -1,113 +1,117 @@
 import { useState, useEffect } from 'react'
-import { Layout, Menu, Card, Row, Col, Statistic, Table, Button, message, Modal, Form, Input, Select, Tag, Popconfirm, Switch, Divider, Tabs } from 'antd'
-import CourseChapterManager from '../../components/CourseChapterManager'
+import { 
+  Layout, Menu, Card, Row, Col, Statistic, Table, Button, message, 
+  Modal, Form, Input, Select, Tag, Popconfirm, Switch, DatePicker,
+  Space, Avatar, Badge, Tooltip, Checkbox
+} from 'antd'
 import {
-  DashboardOutlined,
-  BookOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
-  SettingOutlined,
-  TeamOutlined,
-  FileTextOutlined,
-  BarChartOutlined,
-  PlusOutlined,
-  EditOutlined,
-  DeleteOutlined,
-  LineChartOutlined,
-  PieChartOutlined,
-  RiseOutlined,
-  FallOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-  DatabaseOutlined,
-  ExportOutlined,
-  ImportOutlined,
+  DashboardOutlined, BookOutlined, UserOutlined, VideoCameraOutlined,
+  SettingOutlined, FileTextOutlined, BarChartOutlined,
+  PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined,
+  CheckCircleOutlined, CloseCircleOutlined, ReloadOutlined,
+  TeamOutlined, RiseOutlined, FallOutlined
 } from '@ant-design/icons'
+import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store'
 import Header from '../../components/Layout/Header'
+import CourseChapterManager from '../../components/CourseChapterManager'
 import { courseApi } from '../../services/course'
 import { settingsApi } from '../../services/settings'
 import api from '../../services/api'
+import dayjs from 'dayjs'
 import './index.css'
 
 const { Content, Sider } = Layout
+const { Option } = Select
+const { TextArea } = Input
 
-function AdminDashboard() {
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8']
+
+function AdminComplete() {
   const navigate = useNavigate()
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth)
+  
   const [selectedKey, setSelectedKey] = useState('dashboard')
   const [loading, setLoading] = useState(false)
+  
+  // 模态框
   const [categoryModalVisible, setCategoryModalVisible] = useState(false)
   const [liveModalVisible, setLiveModalVisible] = useState(false)
   const [courseModalVisible, setCourseModalVisible] = useState(false)
   const [userModalVisible, setUserModalVisible] = useState(false)
-  const [courseModalTab, setCourseModalTab] = useState('basic')
-  const [currentCourseId, setCurrentCourseId] = useState<number | null>(null)
+  const [chapterModalVisible, setChapterModalVisible] = useState(false)
+  
+  // 数据
   const [categories, setCategories] = useState<any[]>([])
   const [lives, setLives] = useState<any[]>([])
   const [users, setUsers] = useState<any[]>([])
   const [courses, setCourses] = useState<any[]>([])
+  const [dashboardStats, setDashboardStats] = useState<any>(null)
+  const [systemSettings, setSystemSettings] = useState<any>({})
+  
+  // 编辑项
   const [editingItem, setEditingItem] = useState<any>(null)
+  const [currentCourseId, setCurrentCourseId] = useState<number | null>(null)
+  
+  // 批量选择
+  const [selectedRowKeys, setSelectedRowKeys] = useState<any[]>([])
+  
+  // 表单
   const [form] = Form.useForm()
   const [liveForm] = Form.useForm()
   const [courseForm] = Form.useForm()
   const [userForm] = Form.useForm()
   const [settingsForm] = Form.useForm()
-  const [statsData, setStatsData] = useState<any>(null)
-  const [dashboardStats, setDashboardStats] = useState<any>(null)
-  const [systemSettings, setSystemSettings] = useState({
-    siteName: 'IT学习平台',
-    siteDescription: '专业的IT在线学习平台',
-    enableRegistration: true,
-    enableComments: true,
-    enableNotifications: true,
-    maintenanceMode: false,
-  })
 
-  // 检查权限
+  // 权限检查
   if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'TEACHER')) {
     message.warning('您没有权限访问管理后台')
     navigate('/')
     return null
   }
 
-  // 获取数据
   useEffect(() => {
-    if (selectedKey === 'dashboard') {
-      fetchDashboardStats()
-    } else if (selectedKey === 'categories') {
-      fetchCategories()
-    } else if (selectedKey === 'lives') {
-      fetchLives()
-    } else if (selectedKey === 'courses') {
-      fetchCourses()
-    } else if (selectedKey === 'users' && user?.role === 'ADMIN') {
-      fetchUsers()
-    } else if (selectedKey === 'stats') {
-      fetchStats()
-    } else if (selectedKey === 'settings' && user?.role === 'ADMIN') {
-      fetchSettings()
+    switch(selectedKey) {
+      case 'dashboard': fetchDashboardStats(); break
+      case 'courses': fetchCourses(); fetchCategories(); break
+      case 'users': if (user?.role === 'ADMIN') fetchUsers(); break
+      case 'lives': fetchLives(); fetchCourses(); break
+      case 'categories': fetchCategories(); break
+      case 'stats': fetchDetailedStats(); break
+      case 'settings': if (user?.role === 'ADMIN') fetchSettings(); break
     }
   }, [selectedKey])
 
+  // ==================== 数据获取 ====================
+  
   const fetchDashboardStats = async () => {
     try {
-      const [usersRes, coursesRes, livesRes]: any = await Promise.all([
-        api.get('/api/v1/auth/users', { params: { page: 1, page_size: 1 } }),
-        courseApi.getCourses({ page: 1, page_size: 1 }),
-        api.get('/api/v1/lives', { params: { page: 1, page_size: 1 } })
-      ])
-
+      const stats: any = await api.get('/api/v1/admin/stats')
+      
+      // 模拟图表数据
+      const userGrowthData = [
+        { month: '1月', users: 120 },
+        { month: '2月', users: 180 },
+        { month: '3月', users: 220 },
+        { month: '4月', users: 280 },
+        { month: '5月', users: 350 },
+        { month: '6月', users: stats.total_users || 400 }
+      ]
+      
+      const courseDistribution = [
+        { name: '已发布', value: stats.published_courses || 0 },
+        { name: '草稿', value: (stats.total_courses - stats.published_courses) || 0 }
+      ]
+      
       setDashboardStats({
-        totalUsers: usersRes.total || 0,
-        totalCourses: coursesRes.total || 0,
-        totalLives: livesRes.total || 0,
-        todayViews: 3580 // 这个需要后端添加统计API
+        ...stats,
+        userGrowthData,
+        courseDistribution
       })
     } catch (error) {
-      console.error('获取控制台统计失败:', error)
+      console.error('获取统计失败:', error)
     }
   }
 
@@ -117,55 +121,6 @@ function AdminDashboard() {
       setCourses(response.items || [])
     } catch (error) {
       console.error('获取课程失败:', error)
-    }
-  }
-
-  const fetchStats = async () => {
-    try {
-      // 获取学习统计
-      const learningStats: any = await api.get('/api/v1/learning/stats')
-
-      // 获取课程统计
-      const coursesResponse: any = await courseApi.getCourses({ page: 1, page_size: 100 })
-
-      // 模拟一些额外的统计数据
-      setStatsData({
-        learningStats,
-        totalCourses: coursesResponse.total || 0,
-        totalUsers: 1256, // 从用户API获取
-        totalLives: lives.length,
-        weeklyNewUsers: 128,
-        weeklyActiveCourses: 35,
-        popularCourses: coursesResponse.items?.slice(0, 5) || [],
-      })
-    } catch (error) {
-      console.error('获取统计数据失败:', error)
-    }
-  }
-
-  const fetchSettings = async () => {
-    try {
-      const response: any = await settingsApi.getSettings()
-      setSystemSettings(response)
-      settingsForm.setFieldsValue(response)
-    } catch (error) {
-      console.error('获取系统设置失败:', error)
-      message.error('获取系统设置失败')
-    }
-  }
-
-  const handleSaveSettings = async () => {
-    try {
-      const values = await settingsForm.validateFields()
-      setLoading(true)
-
-      await settingsApi.updateSettings(values)
-      setSystemSettings({ ...systemSettings, ...values })
-      message.success('设置保存成功')
-    } catch (error: any) {
-      message.error(error.response?.data?.detail || '保存失败')
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -196,32 +151,49 @@ function AdminDashboard() {
     }
   }
 
-  // 分类管理操作
-  const handleAddCategory = () => {
-    setEditingItem(null)
-    form.resetFields()
-    setCategoryModalVisible(true)
+  const fetchDetailedStats = async () => {
+    try {
+      const stats: any = await api.get('/api/v1/admin/stats')
+      const coursesResponse: any = await courseApi.getCourses({ page: 1, page_size: 100 })
+      
+      // 模拟课程热度数据
+      const popularCourses = coursesResponse.items?.slice(0, 5).map((c: any) => ({
+        name: c.title.substring(0, 10) + '...',
+        students: c.student_count || 0
+      })) || []
+      
+      setDashboardStats({
+        ...stats,
+        popularCourses
+      })
+    } catch (error) {
+      console.error('获取统计数据失败:', error)
+    }
   }
 
-  const handleEditCategory = (item: any) => {
-    setEditingItem(item)
-    form.setFieldsValue(item)
-    setCategoryModalVisible(true)
+  const fetchSettings = async () => {
+    try {
+      const response: any = await settingsApi.getSettings()
+      setSystemSettings(response)
+      settingsForm.setFieldsValue(response)
+    } catch (error) {
+      console.error('获取设置失败:', error)
+    }
   }
 
+  // ==================== 分类管理 ====================
+  
   const handleSaveCategory = async () => {
     try {
       const values = await form.validateFields()
       setLoading(true)
-
       if (editingItem) {
         await api.put(`/api/v1/categories/${editingItem.id}`, values)
-        message.success('分类更新成功')
+        message.success('更新成功')
       } else {
         await api.post('/api/v1/categories', values)
-        message.success('分类创建成功')
+        message.success('创建成功')
       }
-
       setCategoryModalVisible(false)
       fetchCategories()
     } catch (error: any) {
@@ -241,88 +213,20 @@ function AdminDashboard() {
     }
   }
 
-  // 直播管理操作
-  const handleAddLive = () => {
-    setEditingItem(null)
-    liveForm.resetFields()
-    setLiveModalVisible(true)
-  }
-
-  const handleEditLive = (item: any) => {
-    setEditingItem(item)
-    liveForm.setFieldsValue(item)
-    setLiveModalVisible(true)
-  }
-
-  const handleSaveLive = async () => {
-    try {
-      const values = await liveForm.validateFields()
-      setLoading(true)
-
-      if (editingItem) {
-        await api.put(`/api/v1/lives/${editingItem.id}`, values)
-        message.success('直播更新成功')
-      } else {
-        await api.post('/api/v1/lives', values)
-        message.success('直播创建成功')
-      }
-
-      setLiveModalVisible(false)
-      fetchLives()
-    } catch (error: any) {
-      message.error(error.response?.data?.detail || '操作失败')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handleDeleteLive = async (id: number) => {
-    try {
-      await api.delete(`/api/v1/lives/${id}`)
-      message.success('删除成功')
-      fetchLives()
-    } catch (error: any) {
-      message.error(error.response?.data?.detail || '删除失败')
-    }
-  }
-
-  // 课程管理操作
-  const handleAddCourse = async () => {
-    setEditingItem(null)
-    courseForm.resetFields()
-    // 确保加载了分类数据
-    if (categories.length === 0) {
-      await fetchCategories()
-    }
-    setCourseModalVisible(true)
-  }
-
-  const handleEditCourse = (item: any) => {
-    setEditingItem(item)
-    setCurrentCourseId(item.id)
-    courseForm.setFieldsValue(item)
-    setCourseModalTab('basic')
-    setCourseModalVisible(true)
-  }
-
+  // ==================== 课程管理 ====================
+  
   const handleSaveCourse = async () => {
     try {
       const values = await courseForm.validateFields()
       setLoading(true)
-
       if (editingItem) {
         await courseApi.updateCourse(editingItem.id, values)
-        message.success('课程更新成功')
-        setCurrentCourseId(editingItem.id)
+        message.success('更新成功')
       } else {
-        const response: any = await courseApi.createCourse(values)
-        message.success('课程创建成功，现在可以添加章节了')
-        setCurrentCourseId(response.id)
-        setEditingItem(response)
-        // 切换到章节管理tab
-        setCourseModalTab('chapters')
+        await courseApi.createCourse(values)
+        message.success('创建成功')
       }
-
+      setCourseModalVisible(false)
       fetchCourses()
     } catch (error: any) {
       message.error(error.response?.data?.detail || '操作失败')
@@ -341,31 +245,54 @@ function AdminDashboard() {
     }
   }
 
-  // 用户管理操作
-  const handleEditUser = (item: any) => {
-    setEditingItem(item)
-    userForm.setFieldsValue({ role: item.role, is_active: item.is_active })
-    setUserModalVisible(true)
+  const handleManageChapters = (courseId: number) => {
+    setCurrentCourseId(courseId)
+    setChapterModalVisible(true)
   }
 
-  const handleSaveUser = async () => {
+  // ==================== 用户管理 ====================
+  
+  const handleUpdateUserRole = async (userId: number, role: string) => {
     try {
-      const values = await userForm.validateFields()
-      setLoading(true)
-
-      // 更新角色
-      if (values.role !== editingItem.role) {
-        await api.put(`/api/v1/auth/users/${editingItem.id}/role`, { role: values.role })
-      }
-
-      // 更新状态
-      if (values.is_active !== editingItem.is_active) {
-        await api.put(`/api/v1/auth/users/${editingItem.id}/status`, { is_active: values.is_active })
-      }
-
-      message.success('用户信息更新成功')
-      setUserModalVisible(false)
+      await api.put(`/api/v1/auth/users/${userId}/role`, { role })
+      message.success('角色更新成功')
       fetchUsers()
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '更新失败')
+    }
+  }
+
+  const handleUpdateUserStatus = async (userId: number, isActive: boolean) => {
+    try {
+      await api.put(`/api/v1/auth/users/${userId}/status`, { is_active: isActive })
+      message.success('状态更新成功')
+      fetchUsers()
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '更新失败')
+    }
+  }
+
+  // ==================== 直播管理 ====================
+  
+  const handleSaveLive = async () => {
+    try {
+      const values = await liveForm.validateFields()
+      setLoading(true)
+      
+      // 格式化时间
+      if (values.scheduled_time) {
+        values.scheduled_time = dayjs(values.scheduled_time).format('YYYY-MM-DDTHH:mm:ss')
+      }
+      
+      if (editingItem) {
+        await api.put(`/api/v1/lives/${editingItem.id}`, values)
+        message.success('更新成功')
+      } else {
+        await api.post('/api/v1/lives', values)
+        message.success('创建成功')
+      }
+      setLiveModalVisible(false)
+      fetchLives()
     } catch (error: any) {
       message.error(error.response?.data?.detail || '操作失败')
     } finally {
@@ -373,718 +300,796 @@ function AdminDashboard() {
     }
   }
 
+  const handleUpdateLiveStatus = async (liveId: number, status: string) => {
+    try {
+      await api.put(`/api/v1/lives/${liveId}`, { status })
+      message.success('状态更新成功')
+      fetchLives()
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '更新失败')
+    }
+  }
+
+  const handleDeleteLive = async (id: number) => {
+    try {
+      await api.delete(`/api/v1/lives/${id}`)
+      message.success('删除成功')
+      fetchLives()
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '删除失败')
+    }
+  }
+
+  // ==================== 批量操作 ====================
+  
+  const handleBatchDelete = async (type: string) => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先选择要删除的项')
+      return
+    }
+    
+    try {
+      setLoading(true)
+      const deletePromises = selectedRowKeys.map(id => {
+        switch(type) {
+          case 'courses': return courseApi.deleteCourse(id)
+          case 'categories': return api.delete(`/api/v1/categories/${id}`)
+          case 'lives': return api.delete(`/api/v1/lives/${id}`)
+          default: return Promise.resolve()
+        }
+      })
+      
+      await Promise.all(deletePromises)
+      message.success(`成功删除 ${selectedRowKeys.length} 项`)
+      setSelectedRowKeys([])
+      
+      // 刷新数据
+      switch(type) {
+        case 'courses': fetchCourses(); break
+        case 'categories': fetchCategories(); break
+        case 'lives': fetchLives(); break
+      }
+    } catch (error: any) {
+      message.error('批量删除失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ==================== 系统设置 ====================
+  
+  const handleSaveSettings = async () => {
+    try {
+      const values = await settingsForm.validateFields()
+      setLoading(true)
+      await settingsApi.updateSettings(values)
+      message.success('设置保存成功')
+      setSystemSettings(values)
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '保存失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // ==================== 渲染函数 ====================
+
+  const renderDashboard = () => (
+    <div>
+      <Row gutter={[16, 16]}>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="总用户数"
+              value={dashboardStats?.total_users || 0}
+              prefix={<TeamOutlined />}
+              valueStyle={{ color: '#3f8600' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="总课程数"
+              value={dashboardStats?.total_courses || 0}
+              prefix={<BookOutlined />}
+              valueStyle={{ color: '#1890ff' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="已发布课程"
+              value={dashboardStats?.published_courses || 0}
+              prefix={<CheckCircleOutlined />}
+              valueStyle={{ color: '#52c41a' }}
+            />
+          </Card>
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <Card>
+            <Statistic
+              title="总报名数"
+              value={dashboardStats?.total_enrollments || 0}
+              prefix={<RiseOutlined />}
+              valueStyle={{ color: '#cf1322' }}
+            />
+          </Card>
+        </Col>
+      </Row>
+
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} lg={16}>
+          <Card title="用户增长趋势" extra={<ReloadOutlined onClick={fetchDashboardStats} />}>
+            <ResponsiveContainer width="100%" height={300}>
+              <LineChart data={dashboardStats?.userGrowthData || []}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="month" />
+                <YAxis />
+                <RechartsTooltip />
+                <Legend />
+                <Line type="monotone" dataKey="users" stroke="#8884d8" strokeWidth={2} />
+              </LineChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+        <Col xs={24} lg={8}>
+          <Card title="课程状态分布">
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={dashboardStats?.courseDistribution || []}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {(dashboardStats?.courseDistribution || []).map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  ))}
+                </Pie>
+                <RechartsTooltip />
+              </PieChart>
+            </ResponsiveContainer>
+          </Card>
+        </Col>
+      </Row>
+    </div>
+  )
+
+  const renderCourses = () => {
+    const columns = [
+      {
+        title: '课程名称',
+        dataIndex: 'title',
+        key: 'title',
+        width: 200
+      },
+      {
+        title: '分类',
+        dataIndex: 'category_name',
+        key: 'category_name'
+      },
+      {
+        title: '讲师',
+        dataIndex: 'teacher_name',
+        key: 'teacher_name'
+      },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status: string) => (
+          <Tag color={status === 'PUBLISHED' ? 'green' : 'orange'}>
+            {status === 'PUBLISHED' ? '已发布' : '草稿'}
+          </Tag>
+        )
+      },
+      {
+        title: '学员数',
+        dataIndex: 'student_count',
+        key: 'student_count'
+      },
+      {
+        title: '评分',
+        dataIndex: 'rating',
+        key: 'rating',
+        render: (rating: string) => `${rating} ⭐`
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_: any, record: any) => (
+          <Space>
+            <Button
+              type="link"
+              size="small"
+              icon={<FileTextOutlined />}
+              onClick={() => handleManageChapters(record.id)}
+            >
+              章节
+            </Button>
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditingItem(record)
+                courseForm.setFieldsValue(record)
+                setCourseModalVisible(true)
+              }}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title="确定删除吗？"
+              onConfirm={() => handleDeleteCourse(record.id)}
+            >
+              <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        )
+      }
+    ]
+
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: (keys: any[]) => setSelectedRowKeys(keys)
+    }
+
+    return (
+      <Card
+        title="课程管理"
+        extra={
+          <Space>
+            {selectedRowKeys.length > 0 && (
+              <Popconfirm
+                title={`确定删除选中的 ${selectedRowKeys.length} 项吗？`}
+                onConfirm={() => handleBatchDelete('courses')}
+              >
+                <Button danger>批量删除</Button>
+              </Popconfirm>
+            )}
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={async () => {
+                setEditingItem(null)
+                courseForm.resetFields()
+                if (categories.length === 0) await fetchCategories()
+                setCourseModalVisible(true)
+              }}
+            >
+              添加课程
+            </Button>
+          </Space>
+        }
+      >
+        <Table
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={courses}
+          rowKey="id"
+          loading={loading}
+        />
+      </Card>
+    )
+  }
+
+  const renderUsers = () => {
+    const columns = [
+      {
+        title: '用户名',
+        dataIndex: 'username',
+        key: 'username'
+      },
+      {
+        title: '邮箱',
+        dataIndex: 'email',
+        key: 'email'
+      },
+      {
+        title: '姓名',
+        dataIndex: 'full_name',
+        key: 'full_name'
+      },
+      {
+        title: '角色',
+        dataIndex: 'role',
+        key: 'role',
+        render: (role: string, record: any) => (
+          <Select
+            value={role}
+            style={{ width: 120 }}
+            onChange={(value) => handleUpdateUserRole(record.id, value)}
+            disabled={record.id === user?.id}
+          >
+            <Option value="STUDENT">学生</Option>
+            <Option value="TEACHER">教师</Option>
+            <Option value="ADMIN">管理员</Option>
+          </Select>
+        )
+      },
+      {
+        title: '状态',
+        dataIndex: 'is_active',
+        key: 'is_active',
+        render: (isActive: boolean, record: any) => (
+          <Switch
+            checked={isActive}
+            onChange={(checked) => handleUpdateUserStatus(record.id, checked)}
+            disabled={record.id === user?.id}
+            checkedChildren="启用"
+            unCheckedChildren="禁用"
+          />
+        )
+      },
+      {
+        title: '注册时间',
+        dataIndex: 'created_at',
+        key: 'created_at',
+        render: (time: string) => dayjs(time).format('YYYY-MM-DD')
+      }
+    ]
+
+    return (
+      <Card title="用户管理" extra={<span>共 {users.length} 个用户</span>}>
+        <Table columns={columns} dataSource={users} rowKey="id" loading={loading} />
+      </Card>
+    )
+  }
+
+  const renderLives = () => {
+    const columns = [
+      {
+        title: '直播标题',
+        dataIndex: 'title',
+        key: 'title',
+        width: 200
+      },
+      {
+        title: '关联课程',
+        dataIndex: 'course_id',
+        key: 'course_id',
+        render: (courseId: number) => {
+          const course = courses.find(c => c.id === courseId)
+          return course?.title || '-'
+        }
+      },
+      {
+        title: '状态',
+        dataIndex: 'status',
+        key: 'status',
+        render: (status: string, record: any) => (
+          <Select
+            value={status}
+            style={{ width: 120 }}
+            onChange={(value) => handleUpdateLiveStatus(record.id, value)}
+          >
+            <Option value="scheduled">
+              <Badge status="default" text="已安排" />
+            </Option>
+            <Option value="living">
+              <Badge status="processing" text="直播中" />
+            </Option>
+            <Option value="ended">
+              <Badge status="success" text="已结束" />
+            </Option>
+          </Select>
+        )
+      },
+      {
+        title: '观看人数',
+        dataIndex: 'viewer_count',
+        key: 'viewer_count'
+      },
+      {
+        title: '计划时间',
+        dataIndex: 'scheduled_time',
+        key: 'scheduled_time',
+        render: (time: string) => time ? dayjs(time).format('YYYY-MM-DD HH:mm') : '-'
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_: any, record: any) => (
+          <Space>
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditingItem(record)
+                liveForm.setFieldsValue({
+                  ...record,
+                  scheduled_time: record.scheduled_time ? dayjs(record.scheduled_time) : null
+                })
+                setLiveModalVisible(true)
+              }}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title="确定删除吗？"
+              onConfirm={() => handleDeleteLive(record.id)}
+            >
+              <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        )
+      }
+    ]
+
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: (keys: any[]) => setSelectedRowKeys(keys)
+    }
+
+    return (
+      <Card
+        title="直播管理"
+        extra={
+          <Space>
+            {selectedRowKeys.length > 0 && (
+              <Popconfirm
+                title={`确定删除选中的 ${selectedRowKeys.length} 项吗？`}
+                onConfirm={() => handleBatchDelete('lives')}
+              >
+                <Button danger>批量删除</Button>
+              </Popconfirm>
+            )}
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={async () => {
+                setEditingItem(null)
+                liveForm.resetFields()
+                if (courses.length === 0) await fetchCourses()
+                setLiveModalVisible(true)
+              }}
+            >
+              创建直播
+            </Button>
+          </Space>
+        }
+      >
+        <Table
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={lives}
+          rowKey="id"
+          loading={loading}
+        />
+      </Card>
+    )
+  }
+
+  const renderCategories = () => {
+    const columns = [
+      {
+        title: '分类名称',
+        dataIndex: 'name',
+        key: 'name'
+      },
+      {
+        title: '描述',
+        dataIndex: 'description',
+        key: 'description'
+      },
+      {
+        title: '课程数',
+        key: 'course_count',
+        render: (_: any, record: any) => {
+          const count = courses.filter(c => c.category_id === record.id).length
+          return count
+        }
+      },
+      {
+        title: '创建时间',
+        dataIndex: 'created_at',
+        key: 'created_at',
+        render: (time: string) => time ? dayjs(time).format('YYYY-MM-DD') : '-'
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_: any, record: any) => (
+          <Space>
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditingItem(record)
+                form.setFieldsValue(record)
+                setCategoryModalVisible(true)
+              }}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title="确定删除吗？"
+              onConfirm={() => handleDeleteCategory(record.id)}
+            >
+              <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        )
+      }
+    ]
+
+    const rowSelection = {
+      selectedRowKeys,
+      onChange: (keys: any[]) => setSelectedRowKeys(keys)
+    }
+
+    return (
+      <Card
+        title="分类管理"
+        extra={
+          <Space>
+            {selectedRowKeys.length > 0 && (
+              <Popconfirm
+                title={`确定删除选中的 ${selectedRowKeys.length} 项吗？`}
+                onConfirm={() => handleBatchDelete('categories')}
+              >
+                <Button danger>批量删除</Button>
+              </Popconfirm>
+            )}
+            <Button
+              type="primary"
+              icon={<PlusOutlined />}
+              onClick={() => {
+                setEditingItem(null)
+                form.resetFields()
+                setCategoryModalVisible(true)
+              }}
+            >
+              添加分类
+            </Button>
+          </Space>
+        }
+      >
+        <Table
+          rowSelection={rowSelection}
+          columns={columns}
+          dataSource={categories}
+          rowKey="id"
+          loading={loading}
+        />
+      </Card>
+    )
+  }
+
+  const renderStats = () => {
+    if (!dashboardStats?.popularCourses) {
+      fetchDetailedStats()
+      return <Card loading />
+    }
+
+    return (
+      <div>
+        <Row gutter={[16, 16]}>
+          <Col span={24}>
+            <Card title="热门课程排行">
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={dashboardStats.popularCourses}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="name" />
+                  <YAxis />
+                  <RechartsTooltip />
+                  <Legend />
+                  <Bar dataKey="students" fill="#8884d8" />
+                </BarChart>
+              </ResponsiveContainer>
+            </Card>
+          </Col>
+        </Row>
+        
+        <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+          <Col xs={24} md={8}>
+            <Card>
+              <Statistic title="学生用户" value={dashboardStats.total_students} suffix="人" />
+            </Card>
+          </Col>
+          <Col xs={24} md={8}>
+            <Card>
+              <Statistic title="教师用户" value={dashboardStats.total_teachers} suffix="人" />
+            </Card>
+          </Col>
+          <Col xs={24} md={8}>
+            <Card>
+              <Statistic title="课程报名" value={dashboardStats.total_enrollments} suffix="次" />
+            </Card>
+          </Col>
+        </Row>
+      </div>
+    )
+  }
+
+  const renderSettings = () => (
+    <Card title="系统设置">
+      <Form form={settingsForm} layout="vertical" onFinish={handleSaveSettings}>
+        <Form.Item name="siteName" label="网站名称" rules={[{ required: true }]}>
+          <Input placeholder="IT学习平台" />
+        </Form.Item>
+        <Form.Item name="siteDescription" label="网站描述">
+          <TextArea rows={3} placeholder="专业的IT在线学习平台" />
+        </Form.Item>
+        <Form.Item name="enableRegistration" label="开放注册" valuePropName="checked">
+          <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+        </Form.Item>
+        <Form.Item name="enableComments" label="允许评论" valuePropName="checked">
+          <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+        </Form.Item>
+        <Form.Item name="enableNotifications" label="系统通知" valuePropName="checked">
+          <Switch checkedChildren="开启" unCheckedChildren="关闭" />
+        </Form.Item>
+        <Form.Item name="maintenanceMode" label="维护模式" valuePropName="checked">
+          <Switch checkedChildren="维护中" unCheckedChildren="正常" />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" loading={loading}>
+            保存设置
+          </Button>
+        </Form.Item>
+      </Form>
+    </Card>
+  )
+
   const menuItems = [
     { key: 'dashboard', icon: <DashboardOutlined />, label: '控制台' },
     { key: 'courses', icon: <BookOutlined />, label: '课程管理' },
-    { key: 'users', icon: <TeamOutlined />, label: '用户管理', disabled: user?.role !== 'ADMIN' },
+    ...(user?.role === 'ADMIN' ? [{ key: 'users', icon: <UserOutlined />, label: '用户管理' }] : []),
     { key: 'lives', icon: <VideoCameraOutlined />, label: '直播管理' },
     { key: 'categories', icon: <FileTextOutlined />, label: '分类管理' },
     { key: 'stats', icon: <BarChartOutlined />, label: '数据统计' },
-    { key: 'settings', icon: <SettingOutlined />, label: '系统设置', disabled: user?.role !== 'ADMIN' },
-  ]
-
-  const courseColumns = [
-    { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
-    { title: '课程名称', dataIndex: 'title', key: 'title' },
-    { title: '分类', dataIndex: 'category_name', key: 'category_name' },
-    { title: '讲师', dataIndex: 'teacher_name', key: 'teacher_name' },
-    { title: '学员数', dataIndex: 'student_count', key: 'student_count' },
-    { title: '价格', dataIndex: 'price', key: 'price', render: (price: number) => `¥${price}` },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'PUBLISHED' ? 'green' : status === 'DRAFT' ? 'orange' : 'red'}>
-          {status === 'PUBLISHED' ? '已发布' : status === 'DRAFT' ? '草稿' : '下架'}
-        </Tag>
-      )
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 180,
-      render: (_: any, record: any) => (
-        <>
-          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditCourse(record)}>
-            编辑
-          </Button>
-          <Popconfirm title="确认删除？" onConfirm={() => handleDeleteCourse(record.id)}>
-            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-              删除
-            </Button>
-          </Popconfirm>
-        </>
-      )
-    }
+    ...(user?.role === 'ADMIN' ? [{ key: 'settings', icon: <SettingOutlined />, label: '系统设置' }] : [])
   ]
 
   return (
-    <Layout className="admin-layout">
-      <Sider width={220} className="admin-sider">
-        <div className="admin-logo">
-          <span>📚</span>
-          <span>管理后台</span>
-        </div>
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          onClick={({ key }) => setSelectedKey(key)}
-          items={menuItems}
-          className="admin-menu"
-        />
-      </Sider>
+    <Layout style={{ minHeight: '100vh' }}>
+      <Header />
       <Layout>
-        <Header />
-        <Content className="admin-content">
-          {selectedKey === 'dashboard' && (
-            <>
-              <h2>控制台</h2>
-              <Row gutter={[24, 24]} style={{ marginBottom: 30 }}>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="总用户数"
-                      value={dashboardStats?.totalUsers || 0}
-                      prefix={<UserOutlined />}
-                      valueStyle={{ color: '#1935CA' }}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="课程数量"
-                      value={dashboardStats?.totalCourses || 0}
-                      prefix={<BookOutlined />}
-                      valueStyle={{ color: '#6FD181' }}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="直播场次"
-                      value={dashboardStats?.totalLives || 0}
-                      prefix={<VideoCameraOutlined />}
-                      valueStyle={{ color: '#FF7262' }}
-                    />
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="今日访问"
-                      value={dashboardStats?.todayViews || 0}
-                      prefix={<BarChartOutlined />}
-                      valueStyle={{ color: '#FFB800' }}
-                    />
-                  </Card>
-                </Col>
-              </Row>
-
-              <Card title="最近课程" extra={<Button type="link" onClick={() => setSelectedKey('courses')}>查看全部</Button>}>
-                <Table
-                  dataSource={courses.slice(0, 5)}
-                  columns={courseColumns}
-                  rowKey="id"
-                  pagination={false}
-                  size="small"
-                />
-              </Card>
-            </>
-          )}
-
-          {selectedKey === 'courses' && (
-            <>
-              <h2>课程管理</h2>
-              <Card>
-                <div style={{ marginBottom: 16 }}>
-                  <Button type="primary" icon={<PlusOutlined />} onClick={handleAddCourse}>
-                    新建课程
-                  </Button>
-                </div>
-                <Table
-                  dataSource={courses}
-                  columns={courseColumns}
-                  rowKey="id"
-                />
-              </Card>
-            </>
-          )}
-
-          {selectedKey === 'users' && user?.role === 'ADMIN' && (
-            <>
-              <h2>用户管理</h2>
-              <Card>
-                <Table
-                  dataSource={users}
-                  rowKey="id"
-                  columns={[
-                    { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
-                    { title: '用户名', dataIndex: 'username', key: 'username' },
-                    { title: '邮箱', dataIndex: 'email', key: 'email' },
-                    { title: '姓名', dataIndex: 'full_name', key: 'full_name' },
-                    {
-                      title: '角色',
-                      dataIndex: 'role',
-                      key: 'role',
-                      render: (role: string) => (
-                        <Tag color={role === 'ADMIN' ? 'red' : role === 'TEACHER' ? 'blue' : 'default'}>
-                          {role === 'ADMIN' ? '管理员' : role === 'TEACHER' ? '讲师' : '学员'}
-                        </Tag>
-                      )
-                    },
-                    {
-                      title: '状态',
-                      dataIndex: 'is_active',
-                      key: 'is_active',
-                      render: (is_active: boolean) => (
-                        <Tag color={is_active ? 'green' : 'red'}>
-                          {is_active ? '正常' : '禁用'}
-                        </Tag>
-                      )
-                    },
-                    { title: '注册时间', dataIndex: 'created_at', key: 'created_at', render: (date: string) => new Date(date).toLocaleDateString() },
-                    {
-                      title: '操作',
-                      key: 'action',
-                      width: 120,
-                      render: (_: any, record: any) => (
-                        <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditUser(record)}>
-                          编辑
-                        </Button>
-                      )
-                    }
-                  ]}
-                />
-              </Card>
-            </>
-          )}
-
-          {selectedKey === 'categories' && (
-            <>
-              <h2>分类管理</h2>
-              <Card>
-                <div style={{ marginBottom: 16 }}>
-                  <Button type="primary" icon={<PlusOutlined />} onClick={handleAddCategory}>
-                    新建分类
-                  </Button>
-                </div>
-                <Table
-                  dataSource={categories}
-                  rowKey="id"
-                  columns={[
-                    { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
-                    { title: '分类名称', dataIndex: 'name', key: 'name' },
-                    { title: '描述', dataIndex: 'description', key: 'description' },
-                    { title: '排序', dataIndex: 'sort_order', key: 'sort_order', width: 80 },
-                    {
-                      title: '操作',
-                      key: 'action',
-                      width: 150,
-                      render: (_, record: any) => (
-                        <>
-                          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditCategory(record)}>
-                            编辑
-                          </Button>
-                          <Popconfirm title="确认删除？" onConfirm={() => handleDeleteCategory(record.id)}>
-                            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-                              删除
-                            </Button>
-                          </Popconfirm>
-                        </>
-                      )
-                    }
-                  ]}
-                />
-              </Card>
-            </>
-          )}
-
-          {selectedKey === 'lives' && (
-            <>
-              <h2>直播管理</h2>
-              <Card>
-                <div style={{ marginBottom: 16 }}>
-                  <Button type="primary" icon={<PlusOutlined />} onClick={handleAddLive}>
-                    创建直播
-                  </Button>
-                </div>
-                <Table
-                  dataSource={lives}
-                  rowKey="id"
-                  columns={[
-                    { title: 'ID', dataIndex: 'id', key: 'id', width: 60 },
-                    { title: '直播标题', dataIndex: 'title', key: 'title' },
-                    {
-                      title: '状态',
-                      dataIndex: 'status',
-                      key: 'status',
-                      render: (status: string) => (
-                        <Tag color={status === 'LIVING' ? 'red' : status === 'NOT_STARTED' ? 'blue' : 'default'}>
-                          {status === 'LIVING' ? '直播中' : status === 'NOT_STARTED' ? '未开始' : '已结束'}
-                        </Tag>
-                      )
-                    },
-                    { title: '开始时间', dataIndex: 'start_time', key: 'start_time', render: (date: string) => new Date(date).toLocaleString() },
-                    {
-                      title: '操作',
-                      key: 'action',
-                      width: 150,
-                      render: (_, record: any) => (
-                        <>
-                          <Button type="link" size="small" icon={<EditOutlined />} onClick={() => handleEditLive(record)}>
-                            编辑
-                          </Button>
-                          <Popconfirm title="确认删除？" onConfirm={() => handleDeleteLive(record.id)}>
-                            <Button type="link" danger size="small" icon={<DeleteOutlined />}>
-                              删除
-                            </Button>
-                          </Popconfirm>
-                        </>
-                      )
-                    }
-                  ]}
-                />
-              </Card>
-            </>
-          )}
-
-          {selectedKey === 'stats' && (
-            <>
-              <h2>数据统计</h2>
-
-              {/* 核心指标 */}
-              <Row gutter={[24, 24]} style={{ marginBottom: 30 }}>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="总用户数"
-                      value={statsData?.totalUsers || 0}
-                      prefix={<TeamOutlined />}
-                      suffix={
-                        <span style={{ fontSize: 14, color: '#52c41a' }}>
-                          <RiseOutlined /> +{statsData?.weeklyNewUsers || 0}
-                        </span>
-                      }
-                      valueStyle={{ color: '#1935CA' }}
-                    />
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>本周新增</div>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="课程总数"
-                      value={statsData?.totalCourses || 0}
-                      prefix={<BookOutlined />}
-                      suffix={
-                        <span style={{ fontSize: 14, color: '#52c41a' }}>
-                          <RiseOutlined /> +{statsData?.weeklyActiveCourses || 0}
-                        </span>
-                      }
-                      valueStyle={{ color: '#6FD181' }}
-                    />
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>本周活跃</div>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="学习时长"
-                      value={statsData?.learningStats?.total_learning_hours || 0}
-                      suffix="小时"
-                      prefix={<ClockCircleOutlined />}
-                      valueStyle={{ color: '#FFB800' }}
-                    />
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>累计学习</div>
-                  </Card>
-                </Col>
-                <Col xs={12} sm={6}>
-                  <Card>
-                    <Statistic
-                      title="完成小节"
-                      value={statsData?.learningStats?.completed_sections || 0}
-                      prefix={<CheckCircleOutlined />}
-                      valueStyle={{ color: '#FF7262' }}
-                    />
-                    <div style={{ marginTop: 8, fontSize: 12, color: '#999' }}>总完成数</div>
-                  </Card>
-                </Col>
-              </Row>
-
-              {/* 趋势图表区 */}
-              <Row gutter={[24, 24]} style={{ marginBottom: 30 }}>
-                <Col xs={24} lg={12}>
-                  <Card title={<><LineChartOutlined /> 用户增长趋势</>}>
-                    <div style={{ padding: '60px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 8 }}>
-                      <BarChartOutlined style={{ fontSize: 48, color: '#1935CA', marginBottom: 16 }} />
-                      <p style={{ color: '#999' }}>用户增长趋势图</p>
-                      <p style={{ fontSize: 12, color: '#ccc' }}>（图表数据可视化组件）</p>
-                    </div>
-                  </Card>
-                </Col>
-                <Col xs={24} lg={12}>
-                  <Card title={<><PieChartOutlined /> 课程分类分布</>}>
-                    <div style={{ padding: '60px 20px', textAlign: 'center', background: '#f5f5f5', borderRadius: 8 }}>
-                      <PieChartOutlined style={{ fontSize: 48, color: '#6FD181', marginBottom: 16 }} />
-                      <p style={{ color: '#999' }}>课程分类占比</p>
-                      <p style={{ fontSize: 12, color: '#ccc' }}>（饼图可视化组件）</p>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-
-              {/* 热门课程排行 */}
-              <Card title="热门课程排行" extra={<Button type="link">查看全部</Button>}>
-                <Table
-                  dataSource={statsData?.popularCourses || []}
-                  rowKey="id"
-                  pagination={false}
-                  columns={[
-                    { title: '排名', key: 'rank', width: 60, render: (_, __, index) => index + 1 },
-                    { title: '课程名称', dataIndex: 'title', key: 'title' },
-                    {
-                      title: '学员数',
-                      dataIndex: 'student_count',
-                      key: 'student_count',
-                      sorter: (a, b) => Number((a as any)?.student_count ?? 0) - Number((b as any)?.student_count ?? 0),
-                      render: (value: number | string) => Number(value ?? 0),
-                    },
-                    {
-                      title: '评分',
-                      dataIndex: 'rating',
-                      key: 'rating',
-                      render: (rating: number | string) => `${Number(rating ?? 0).toFixed(1)} ⭐`,
-                    },
-                    {
-                      title: '状态',
-                      dataIndex: 'status',
-                      key: 'status',
-                      render: (status) => (
-                        <Tag color={status === 'PUBLISHED' ? 'green' : 'orange'}>
-                          {status === 'PUBLISHED' ? '已发布' : '草稿'}
-                        </Tag>
-                      )
-                    },
-                  ]}
-                />
-              </Card>
-            </>
-          )}
-
-          {selectedKey === 'settings' && user?.role === 'ADMIN' && (
-            <>
-              <h2>系统设置</h2>
-
-              <Row gutter={[24, 24]}>
-                <Col xs={24} lg={16}>
-                  <Card title="基本设置" style={{ marginBottom: 24 }}>
-                    <Form
-                      form={settingsForm}
-                      layout="vertical"
-                      initialValues={systemSettings}
-                      onFinish={handleSaveSettings}
-                    >
-                      <Form.Item name="siteName" label="网站名称" rules={[{ required: true, message: '请输入网站名称' }]}>
-                        <Input placeholder="请输入网站名称" />
-                      </Form.Item>
-
-                      <Form.Item name="siteDescription" label="网站描述">
-                        <Input.TextArea rows={3} placeholder="请输入网站描述" />
-                      </Form.Item>
-
-                      <Divider />
-
-                      <Form.Item label="功能开关">
-                        <Row gutter={[16, 16]}>
-                          <Col span={12}>
-                            <Form.Item name="enableRegistration" valuePropName="checked" style={{ marginBottom: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span>允许用户注册</span>
-                                <Switch />
-                              </div>
-                            </Form.Item>
-                          </Col>
-                          <Col span={12}>
-                            <Form.Item name="enableComments" valuePropName="checked" style={{ marginBottom: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span>允许评论</span>
-                                <Switch />
-                              </div>
-                            </Form.Item>
-                          </Col>
-                          <Col span={12}>
-                            <Form.Item name="enableNotifications" valuePropName="checked" style={{ marginBottom: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span>启用通知</span>
-                                <Switch />
-                              </div>
-                            </Form.Item>
-                          </Col>
-                          <Col span={12}>
-                            <Form.Item name="maintenanceMode" valuePropName="checked" style={{ marginBottom: 0 }}>
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                <span>维护模式</span>
-                                <Switch />
-                              </div>
-                            </Form.Item>
-                          </Col>
-                        </Row>
-                      </Form.Item>
-
-                      <Divider />
-
-                      <Form.Item>
-                        <Button type="primary" htmlType="submit" loading={loading}>
-                          保存设置
-                        </Button>
-                        <Button style={{ marginLeft: 8 }} onClick={() => settingsForm.resetFields()}>
-                          重置
-                        </Button>
-                      </Form.Item>
-                    </Form>
-                  </Card>
-
-                  <Card title="系统信息">
-                    <Row gutter={[16, 16]}>
-                      <Col span={12}>
-                        <div style={{ padding: '12px 0' }}>
-                          <div style={{ color: '#999', fontSize: 12 }}>系统版本</div>
-                          <div style={{ fontSize: 16, fontWeight: 600 }}>v1.0.0</div>
-                        </div>
-                      </Col>
-                      <Col span={12}>
-                        <div style={{ padding: '12px 0' }}>
-                          <div style={{ color: '#999', fontSize: 12 }}>数据库</div>
-                          <div style={{ fontSize: 16, fontWeight: 600 }}>MySQL 8.0</div>
-                        </div>
-                      </Col>
-                      <Col span={12}>
-                        <div style={{ padding: '12px 0' }}>
-                          <div style={{ color: '#999', fontSize: 12 }}>后端框架</div>
-                          <div style={{ fontSize: 16, fontWeight: 600 }}>FastAPI</div>
-                        </div>
-                      </Col>
-                      <Col span={12}>
-                        <div style={{ padding: '12px 0' }}>
-                          <div style={{ color: '#999', fontSize: 12 }}>前端框架</div>
-                          <div style={{ fontSize: 16, fontWeight: 600 }}>React 18</div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </Card>
-                </Col>
-
-                <Col xs={24} lg={8}>
-                  <Card title="快捷操作" style={{ marginBottom: 24 }}>
-                    <Button block style={{ marginBottom: 12 }}>
-                      <DatabaseOutlined /> 清理缓存
-                    </Button>
-                    <Button block style={{ marginBottom: 12 }}>
-                      <ExportOutlined /> 导出数据
-                    </Button>
-                    <Button block style={{ marginBottom: 12 }}>
-                      <ImportOutlined /> 导入数据
-                    </Button>
-                    <Button block danger>
-                      <DeleteOutlined /> 清空日志
-                    </Button>
-                  </Card>
-
-                  <Card title="系统状态">
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <span>CPU使用率</span>
-                        <span style={{ color: '#52c41a' }}>25%</span>
-                      </div>
-                      <div style={{ height: 8, background: '#f0f0f0', borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ width: '25%', height: '100%', background: '#52c41a' }} />
-                      </div>
-                    </div>
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <span>内存使用</span>
-                        <span style={{ color: '#1890ff' }}>60%</span>
-                      </div>
-                      <div style={{ height: 8, background: '#f0f0f0', borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ width: '60%', height: '100%', background: '#1890ff' }} />
-                      </div>
-                    </div>
-                    <div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                        <span>磁盘空间</span>
-                        <span style={{ color: '#faad14' }}>75%</span>
-                      </div>
-                      <div style={{ height: 8, background: '#f0f0f0', borderRadius: 4, overflow: 'hidden' }}>
-                        <div style={{ width: '75%', height: '100%', background: '#faad14' }} />
-                      </div>
-                    </div>
-                  </Card>
-                </Col>
-              </Row>
-            </>
-          )}
-        </Content>
-
-        {/* 分类管理Modal */}
-        <Modal
-          title={editingItem ? '编辑分类' : '新建分类'}
-          open={categoryModalVisible}
-          onOk={handleSaveCategory}
-          onCancel={() => setCategoryModalVisible(false)}
-          confirmLoading={loading}
-        >
-          <Form form={form} layout="vertical">
-            <Form.Item name="name" label="分类名称" rules={[{ required: true, message: '请输入分类名称' }]}>
-              <Input placeholder="请输入分类名称" />
-            </Form.Item>
-            <Form.Item name="description" label="分类描述">
-              <Input.TextArea rows={3} placeholder="请输入分类描述" />
-            </Form.Item>
-            <Form.Item name="sort_order" label="排序" initialValue={0}>
-              <Input type="number" placeholder="数字越小越靠前" />
-            </Form.Item>
-          </Form>
-        </Modal>
-
-        {/* 直播管理Modal */}
-        <Modal
-          title={editingItem ? '编辑直播' : '创建直播'}
-          open={liveModalVisible}
-          onOk={handleSaveLive}
-          onCancel={() => setLiveModalVisible(false)}
-          confirmLoading={loading}
-          width={600}
-        >
-          <Form form={liveForm} layout="vertical">
-            <Form.Item name="title" label="直播标题" rules={[{ required: true, message: '请输入直播标题' }]}>
-              <Input placeholder="请输入直播标题" />
-            </Form.Item>
-            <Form.Item name="description" label="直播描述">
-              <Input.TextArea rows={3} placeholder="请输入直播描述" />
-            </Form.Item>
-            <Form.Item name="cover_image" label="封面图片">
-              <Input placeholder="请输入封面图片URL" />
-            </Form.Item>
-            <Form.Item name="start_time" label="开始时间" rules={[{ required: true, message: '请选择开始时间' }]}>
-              <Input type="datetime-local" />
-            </Form.Item>
-            <Form.Item name="status" label="状态" initialValue="NOT_STARTED">
-              <Select>
-                <Select.Option value="NOT_STARTED">未开始</Select.Option>
-                <Select.Option value="LIVING">直播中</Select.Option>
-                <Select.Option value="FINISHED">已结束</Select.Option>
-              </Select>
-            </Form.Item>
-          </Form>
-        </Modal>
-
-        {/* 课程管理Modal */}
-        <Modal
-          title={editingItem ? '编辑课程' : '新建课程'}
-          open={courseModalVisible}
-          onOk={courseModalTab === 'basic' ? handleSaveCourse : undefined}
-          onCancel={() => {
-            setCourseModalVisible(false)
-            setCurrentCourseId(null)
-            setCourseModalTab('basic')
-          }}
-          confirmLoading={loading}
-          footer={courseModalTab === 'chapters' ? null : undefined}
-          width={courseModalTab === 'chapters' ? 900 : 700}
-        >
-          <Tabs activeKey={courseModalTab} onChange={setCourseModalTab}>
-            <Tabs.TabPane tab="基本信息" key="basic">
-              <Form form={courseForm} layout="vertical">
-                <Form.Item name="title" label="课程名称" rules={[{ required: true, message: '请输入课程名称' }]}>
-                  <Input placeholder="请输入课程名称" />
-                </Form.Item>
-                <Form.Item name="description" label="课程描述" rules={[{ required: true, message: '请输入课程描述' }]}>
-                  <Input.TextArea rows={4} placeholder="请输入课程描述" />
-                </Form.Item>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item name="category_id" label="课程分类" rules={[{ required: true, message: '请选择课程分类' }]}>
-                      <Select placeholder="请选择分类">
-                        {categories.map(cat => (
-                          <Select.Option key={cat.id} value={cat.id}>{cat.name}</Select.Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item name="level" label="课程难度" initialValue="BEGINNER">
-                      <Select>
-                        <Select.Option value="BEGINNER">入门</Select.Option>
-                        <Select.Option value="INTERMEDIATE">进阶</Select.Option>
-                        <Select.Option value="ADVANCED">高级</Select.Option>
-                      </Select>
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Form.Item name="price" label="现价" rules={[{ required: true, message: '请输入价格' }]}>
-                      <Input type="number" prefix="¥" placeholder="0.00" />
-                    </Form.Item>
-                  </Col>
-                  <Col span={12}>
-                    <Form.Item name="original_price" label="原价">
-                      <Input type="number" prefix="¥" placeholder="0.00" />
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Form.Item name="cover_image" label="封面图片">
-                  <Input placeholder="请输入封面图片URL" />
-                </Form.Item>
-                <Form.Item name="status" label="发布状态" initialValue="DRAFT">
-                  <Select>
-                    <Select.Option value="DRAFT">草稿</Select.Option>
-                    <Select.Option value="PUBLISHED">已发布</Select.Option>
-                    <Select.Option value="OFFLINE">已下架</Select.Option>
-                  </Select>
-                </Form.Item>
-              </Form>
-            </Tabs.TabPane>
-            <Tabs.TabPane tab="章节管理" key="chapters" disabled={!currentCourseId}>
-              <CourseChapterManager courseId={currentCourseId} />
-            </Tabs.TabPane>
-          </Tabs>
-        </Modal>
-
-        {/* 用户管理Modal */}
-        <Modal
-          title="编辑用户"
-          open={userModalVisible}
-          onOk={handleSaveUser}
-          onCancel={() => setUserModalVisible(false)}
-          confirmLoading={loading}
-        >
-          <Form form={userForm} layout="vertical">
-            <Form.Item label="用户信息">
-              <div style={{ marginBottom: 16, padding: 12, background: '#f5f5f5', borderRadius: 4 }}>
-                <p><strong>用户名：</strong>{editingItem?.username}</p>
-                <p><strong>邮箱：</strong>{editingItem?.email}</p>
-                <p style={{ marginBottom: 0 }}><strong>姓名：</strong>{editingItem?.full_name || '-'}</p>
-              </div>
-            </Form.Item>
-            <Form.Item name="role" label="角色" rules={[{ required: true, message: '请选择角色' }]}>
-              <Select>
-                <Select.Option value="STUDENT">学员</Select.Option>
-                <Select.Option value="TEACHER">讲师</Select.Option>
-                <Select.Option value="ADMIN">管理员</Select.Option>
-              </Select>
-            </Form.Item>
-            <Form.Item name="is_active" label="账户状态" valuePropName="checked">
-              <Switch checkedChildren="正常" unCheckedChildren="禁用" />
-            </Form.Item>
-          </Form>
-        </Modal>
+        <Sider width={200} style={{ background: '#fff' }}>
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            style={{ height: '100%', borderRight: 0 }}
+            items={menuItems}
+            onClick={({ key }) => {
+              setSelectedKey(key)
+              setSelectedRowKeys([])
+            }}
+          />
+        </Sider>
+        <Layout style={{ padding: '24px' }}>
+          <Content style={{ background: '#fff', padding: 24, margin: 0, minHeight: 280 }}>
+            {selectedKey === 'dashboard' && renderDashboard()}
+            {selectedKey === 'courses' && renderCourses()}
+            {selectedKey === 'users' && renderUsers()}
+            {selectedKey === 'lives' && renderLives()}
+            {selectedKey === 'categories' && renderCategories()}
+            {selectedKey === 'stats' && renderStats()}
+            {selectedKey === 'settings' && renderSettings()}
+          </Content>
+        </Layout>
       </Layout>
+
+      {/* 分类模态框 */}
+      <Modal
+        title={editingItem ? '编辑分类' : '添加分类'}
+        open={categoryModalVisible}
+        onOk={handleSaveCategory}
+        onCancel={() => setCategoryModalVisible(false)}
+        confirmLoading={loading}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item name="name" label="分类名称" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="description" label="描述">
+            <TextArea rows={3} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 课程模态框 */}
+      <Modal
+        title={editingItem ? '编辑课程' : '创建课程'}
+        open={courseModalVisible}
+        onOk={handleSaveCourse}
+        onCancel={() => setCourseModalVisible(false)}
+        confirmLoading={loading}
+        width={600}
+      >
+        <Form form={courseForm} layout="vertical">
+          <Form.Item name="title" label="课程名称" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="category_id" label="分类" rules={[{ required: true }]}>
+            <Select placeholder="选择分类">
+              {categories.map(cat => (
+                <Option key={cat.id} value={cat.id}>{cat.name}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="description" label="课程描述">
+            <TextArea rows={4} />
+          </Form.Item>
+          <Form.Item name="price" label="价格" rules={[{ required: true }]}>
+            <Input type="number" prefix="¥" />
+          </Form.Item>
+          <Form.Item name="status" label="状态">
+            <Select>
+              <Option value="DRAFT">草稿</Option>
+              <Option value="PUBLISHED">已发布</Option>
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 直播模态框 */}
+      <Modal
+        title={editingItem ? '编辑直播' : '创建直播'}
+        open={liveModalVisible}
+        onOk={handleSaveLive}
+        onCancel={() => setLiveModalVisible(false)}
+        confirmLoading={loading}
+      >
+        <Form form={liveForm} layout="vertical">
+          <Form.Item name="title" label="直播标题" rules={[{ required: true }]}>
+            <Input />
+          </Form.Item>
+          <Form.Item name="course_id" label="关联课程">
+            <Select placeholder="选择课程" allowClear>
+              {courses.map(course => (
+                <Option key={course.id} value={course.id}>{course.title}</Option>
+              ))}
+            </Select>
+          </Form.Item>
+          <Form.Item name="description" label="直播描述">
+            <TextArea rows={3} />
+          </Form.Item>
+          <Form.Item name="scheduled_time" label="计划时间" rules={[{ required: true }]}>
+            <DatePicker showTime format="YYYY-MM-DD HH:mm" style={{ width: '100%' }} />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 章节管理模态框 */}
+      <Modal
+        title="章节管理"
+        open={chapterModalVisible}
+        onCancel={() => {
+          setChapterModalVisible(false)
+          setCurrentCourseId(null)
+        }}
+        footer={null}
+        width={800}
+      >
+        {currentCourseId && (
+          <CourseChapterManager 
+            courseId={currentCourseId}
+            onClose={() => {
+              setChapterModalVisible(false)
+              setCurrentCourseId(null)
+            }}
+          />
+        )}
+      </Modal>
     </Layout>
   )
 }
 
-export default AdminDashboard
+export default AdminComplete
