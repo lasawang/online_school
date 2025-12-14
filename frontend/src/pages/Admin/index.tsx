@@ -9,7 +9,7 @@ import {
   SettingOutlined, FileTextOutlined, BarChartOutlined,
   PlusOutlined, EditOutlined, DeleteOutlined, EyeOutlined,
   CheckCircleOutlined, CloseCircleOutlined, ReloadOutlined,
-  TeamOutlined, RiseOutlined, FallOutlined
+  TeamOutlined, RiseOutlined, FallOutlined, PictureOutlined, WalletOutlined
 } from '@ant-design/icons'
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, ResponsiveContainer } from 'recharts'
 import { useNavigate } from 'react-router-dom'
@@ -42,6 +42,8 @@ function AdminComplete() {
   const [courseModalVisible, setCourseModalVisible] = useState(false)
   const [userModalVisible, setUserModalVisible] = useState(false)
   const [chapterModalVisible, setChapterModalVisible] = useState(false)
+  const [bannerModalVisible, setBannerModalVisible] = useState(false)
+  const [walletModalVisible, setWalletModalVisible] = useState(false)
   
   // 数据
   const [categories, setCategories] = useState<any[]>([])
@@ -50,6 +52,8 @@ function AdminComplete() {
   const [courses, setCourses] = useState<any[]>([])
   const [dashboardStats, setDashboardStats] = useState<any>(null)
   const [systemSettings, setSystemSettings] = useState<any>({})
+  const [banners, setBanners] = useState<any[]>([])
+  const [walletUser, setWalletUser] = useState<any>(null)
   
   // 编辑项
   const [editingItem, setEditingItem] = useState<any>(null)
@@ -64,6 +68,8 @@ function AdminComplete() {
   const [courseForm] = Form.useForm()
   const [userForm] = Form.useForm()
   const [settingsForm] = Form.useForm()
+  const [bannerForm] = Form.useForm()
+  const [walletForm] = Form.useForm()
 
   // 权限检查
   if (!isAuthenticated || (user?.role !== 'ADMIN' && user?.role !== 'TEACHER')) {
@@ -81,6 +87,8 @@ function AdminComplete() {
       case 'categories': fetchCategories(); break
       case 'stats': fetchDetailedStats(); break
       case 'settings': if (user?.role === 'ADMIN') fetchSettings(); break
+      case 'banners': fetchBanners(); break
+      case 'wallet': if (user?.role === 'ADMIN') fetchUsers(); break
     }
   }, [selectedKey])
 
@@ -181,6 +189,72 @@ function AdminComplete() {
       settingsForm.setFieldsValue(response)
     } catch (error) {
       console.error('获取设置失败:', error)
+    }
+  }
+
+  const fetchBanners = async () => {
+    try {
+      const response: any = await api.get('/api/v1/banners')
+      setBanners(response || [])
+    } catch (error) {
+      console.error('获取轮播图失败:', error)
+    }
+  }
+
+  // ==================== Banner管理 ====================
+  
+  const handleSaveBanner = async () => {
+    try {
+      const values = await bannerForm.validateFields()
+      setLoading(true)
+      if (editingItem) {
+        await api.put(`/api/v1/banners/${editingItem.id}`, values)
+        message.success('更新成功')
+      } else {
+        await api.post('/api/v1/banners', values)
+        message.success('创建成功')
+      }
+      setBannerModalVisible(false)
+      fetchBanners()
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '操作失败')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDeleteBanner = async (id: number) => {
+    try {
+      await api.delete(`/api/v1/banners/${id}`)
+      message.success('删除成功')
+      fetchBanners()
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '删除失败')
+    }
+  }
+
+  // ==================== 钱包管理 ====================
+  
+  const handleAddBalance = async () => {
+    try {
+      const values = await walletForm.validateFields()
+      setLoading(true)
+      
+      await api.post(`/api/v1/wallet/admin/add-balance/${walletUser.id}`, null, {
+        params: {
+          amount: values.amount,
+          description: values.description || '管理员充值'
+        }
+      })
+      
+      message.success('充值成功')
+      setWalletModalVisible(false)
+      walletForm.resetFields()
+      setWalletUser(null)
+    } catch (error: any) {
+      message.error(error.response?.data?.detail || '充值失败')
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -920,6 +994,149 @@ function AdminComplete() {
     )
   }
 
+  const renderBanners = () => {
+    const columns = [
+      {
+        title: '图片',
+        dataIndex: 'image_url',
+        key: 'image_url',
+        render: (url: string) => <img src={url} alt="banner" style={{ width: 100, height: 50, objectFit: 'cover' }} />
+      },
+      {
+        title: '标题',
+        dataIndex: 'title',
+        key: 'title'
+      },
+      {
+        title: '链接',
+        dataIndex: 'link_url',
+        key: 'link_url'
+      },
+      {
+        title: '排序',
+        dataIndex: 'sort_order',
+        key: 'sort_order'
+      },
+      {
+        title: '状态',
+        dataIndex: 'is_active',
+        key: 'is_active',
+        render: (isActive: boolean) => (
+          <Tag color={isActive ? 'green' : 'red'}>
+            {isActive ? '启用' : '禁用'}
+          </Tag>
+        )
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_: any, record: any) => (
+          <Space>
+            <Button
+              type="link"
+              size="small"
+              icon={<EditOutlined />}
+              onClick={() => {
+                setEditingItem(record)
+                bannerForm.setFieldsValue(record)
+                setBannerModalVisible(true)
+              }}
+            >
+              编辑
+            </Button>
+            <Popconfirm
+              title="确定删除吗？"
+              onConfirm={() => handleDeleteBanner(record.id)}
+            >
+              <Button type="link" danger size="small" icon={<DeleteOutlined />}>
+                删除
+              </Button>
+            </Popconfirm>
+          </Space>
+        )
+      }
+    ]
+
+    return (
+      <Card
+        title="轮播图管理"
+        extra={
+          <Button
+            type="primary"
+            icon={<PlusOutlined />}
+            onClick={() => {
+              setEditingItem(null)
+              bannerForm.resetFields()
+              setBannerModalVisible(true)
+            }}
+          >
+            添加轮播图
+          </Button>
+        }
+      >
+        <Table
+          columns={columns}
+          dataSource={banners}
+          rowKey="id"
+          loading={loading}
+        />
+      </Card>
+    )
+  }
+
+  const renderWallet = () => {
+    const columns = [
+      {
+        title: '用户名',
+        dataIndex: 'username',
+        key: 'username'
+      },
+      {
+        title: '邮箱',
+        dataIndex: 'email',
+        key: 'email'
+      },
+      {
+        title: '姓名',
+        dataIndex: 'full_name',
+        key: 'full_name'
+      },
+      {
+        title: '角色',
+        dataIndex: 'role',
+        key: 'role',
+        render: (role: string) => (
+          <Tag color={role === 'ADMIN' ? 'red' : role === 'TEACHER' ? 'blue' : 'green'}>
+            {role === 'ADMIN' ? '管理员' : role === 'TEACHER' ? '教师' : '学生'}
+          </Tag>
+        )
+      },
+      {
+        title: '操作',
+        key: 'action',
+        render: (_: any, record: any) => (
+          <Button
+            type="primary"
+            size="small"
+            onClick={() => {
+              setWalletUser(record)
+              walletForm.resetFields()
+              setWalletModalVisible(true)
+            }}
+          >
+            充值
+          </Button>
+        )
+      }
+    ]
+
+    return (
+      <Card title="钱包管理" extra={<span>为用户账户充值</span>}>
+        <Table columns={columns} dataSource={users} rowKey="id" loading={loading} />
+      </Card>
+    )
+  }
+
   const renderSettings = () => (
     <Card title="系统设置">
       <Form form={settingsForm} layout="vertical" onFinish={handleSaveSettings}>
@@ -956,6 +1173,8 @@ function AdminComplete() {
     ...(user?.role === 'ADMIN' ? [{ key: 'users', icon: <UserOutlined />, label: '用户管理' }] : []),
     { key: 'lives', icon: <VideoCameraOutlined />, label: '直播管理' },
     { key: 'categories', icon: <FileTextOutlined />, label: '分类管理' },
+    { key: 'banners', icon: <PictureOutlined />, label: '轮播图管理' },
+    ...(user?.role === 'ADMIN' ? [{ key: 'wallet', icon: <WalletOutlined />, label: '钱包管理' }] : []),
     { key: 'stats', icon: <BarChartOutlined />, label: '数据统计' },
     ...(user?.role === 'ADMIN' ? [{ key: 'settings', icon: <SettingOutlined />, label: '系统设置' }] : [])
   ]
@@ -983,6 +1202,8 @@ function AdminComplete() {
             {selectedKey === 'users' && renderUsers()}
             {selectedKey === 'lives' && renderLives()}
             {selectedKey === 'categories' && renderCategories()}
+            {selectedKey === 'banners' && renderBanners()}
+            {selectedKey === 'wallet' && renderWallet()}
             {selectedKey === 'stats' && renderStats()}
             {selectedKey === 'settings' && renderSettings()}
           </Content>
@@ -1090,6 +1311,75 @@ function AdminComplete() {
             }}
           />
         )}
+      </Modal>
+
+      {/* Banner轮播图模态框 */}
+      <Modal
+        title={editingItem ? '编辑轮播图' : '添加轮播图'}
+        open={bannerModalVisible}
+        onOk={handleSaveBanner}
+        onCancel={() => setBannerModalVisible(false)}
+        confirmLoading={loading}
+      >
+        <Form form={bannerForm} layout="vertical">
+          <Form.Item name="title" label="标题" rules={[{ required: true }]}>
+            <Input placeholder="轮播图标题" />
+          </Form.Item>
+          <Form.Item name="image_url" label="图片URL" rules={[{ required: true }]}>
+            <Input placeholder="https://example.com/image.jpg" />
+          </Form.Item>
+          <Form.Item name="link_url" label="链接URL">
+            <Input placeholder="https://example.com/page" />
+          </Form.Item>
+          <Form.Item name="sort_order" label="排序" rules={[{ required: true }]}>
+            <Input type="number" placeholder="数字越小越靠前" />
+          </Form.Item>
+          <Form.Item name="is_active" label="状态" valuePropName="checked" initialValue={true}>
+            <Switch checkedChildren="启用" unCheckedChildren="禁用" />
+          </Form.Item>
+        </Form>
+      </Modal>
+
+      {/* 钱包充值模态框 */}
+      <Modal
+        title={`为 ${walletUser?.username} 充值`}
+        open={walletModalVisible}
+        onOk={handleAddBalance}
+        onCancel={() => {
+          setWalletModalVisible(false)
+          setWalletUser(null)
+        }}
+        confirmLoading={loading}
+      >
+        <Form form={walletForm} layout="vertical">
+          <Form.Item label="用户信息">
+            <div style={{ padding: '10px', background: '#f5f5f5', borderRadius: '4px' }}>
+              <p><strong>用户名：</strong>{walletUser?.username}</p>
+              <p><strong>邮箱：</strong>{walletUser?.email}</p>
+              <p><strong>姓名：</strong>{walletUser?.full_name}</p>
+            </div>
+          </Form.Item>
+          <Form.Item 
+            name="amount" 
+            label="充值金额" 
+            rules={[
+              { required: true, message: '请输入充值金额' },
+              { 
+                validator: (_, value) => {
+                  if (value && value > 0) {
+                    return Promise.resolve()
+                  }
+                  return Promise.reject(new Error('金额必须大于0'))
+                }
+              }
+            ]}
+          >
+            <Input type="number" prefix="¥" placeholder="输入充值金额" />
+          </Form.Item>
+          <Form.Item name="description" label="充值说明">
+            <TextArea rows={3} placeholder="管理员充值" />
+          </Form.Item>
+        </Form>
       </Modal>
     </Layout>
   )

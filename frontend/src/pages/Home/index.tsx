@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Layout, Row, Col, Card, Statistic, Progress, Avatar, List, Spin } from 'antd'
+import { Layout, Row, Col, Card, Statistic, Progress, Avatar, List, Spin, Carousel } from 'antd'
 import {
   TrophyOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
   FireOutlined,
 } from '@ant-design/icons'
+import api from '../../services/api'
 import { useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { RootState } from '../../store'
@@ -43,6 +44,7 @@ function Home() {
 
   const [loading, setLoading] = useState(false)
   const [featuredCourses, setFeaturedCourses] = useState<CourseItem[]>([])
+  const [banners, setBanners] = useState<any[]>([])
   const [learningStats, setLearningStats] = useState<LearningStats>({
     learning_courses: 0,
     completed_sections: 0,
@@ -50,6 +52,19 @@ function Home() {
     total_learning_hours: 0,
     collections_count: 0,
   })
+
+  // 获取Banner轮播图
+  useEffect(() => {
+    const fetchBanners = async () => {
+      try {
+        const response: any = await api.get('/api/v1/banners')
+        setBanners(response || [])
+      } catch (error) {
+        console.error('获取轮播图失败:', error)
+      }
+    }
+    fetchBanners()
+  }, [])
 
   // 获取精选课程
   useEffect(() => {
@@ -157,6 +172,47 @@ function Home() {
               />
             </div>
           </div>
+
+          {/* Banner Carousel */}
+          {banners.length > 0 && (
+            <div style={{ marginBottom: 30 }}>
+              <Carousel autoplay autoplaySpeed={3000}>
+                {banners.map((banner) => (
+                  <div key={banner.id}>
+                    <div
+                      style={{
+                        height: 300,
+                        background: `url(${banner.image_url}) center/cover`,
+                        borderRadius: 12,
+                        position: 'relative',
+                        cursor: banner.link_url ? 'pointer' : 'default'
+                      }}
+                      onClick={() => {
+                        if (banner.link_url) {
+                          window.open(banner.link_url, '_blank')
+                        }
+                      }}
+                    >
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          padding: '20px',
+                          background: 'linear-gradient(to top, rgba(0,0,0,0.7), transparent)',
+                          color: 'white',
+                          borderRadius: '0 0 12px 12px'
+                        }}
+                      >
+                        <h2 style={{ color: 'white', margin: 0 }}>{banner.title}</h2>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </Carousel>
+            </div>
+          )}
 
           {/* Statistics */}
           <Row gutter={[24, 24]} style={{ marginBottom: 30 }}>
