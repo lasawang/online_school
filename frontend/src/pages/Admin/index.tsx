@@ -745,8 +745,19 @@ function AdminDashboard() {
                   columns={[
                     { title: '排名', key: 'rank', width: 60, render: (_, __, index) => index + 1 },
                     { title: '课程名称', dataIndex: 'title', key: 'title' },
-                    { title: '学员数', dataIndex: 'student_count', key: 'student_count', sorter: (a, b) => a.student_count - b.student_count },
-                    { title: '评分', dataIndex: 'rating', key: 'rating', render: (rating) => `${rating} ⭐` },
+                    {
+                      title: '学员数',
+                      dataIndex: 'student_count',
+                      key: 'student_count',
+                      sorter: (a, b) => Number((a as any)?.student_count ?? 0) - Number((b as any)?.student_count ?? 0),
+                      render: (value: number | string) => Number(value ?? 0),
+                    },
+                    {
+                      title: '评分',
+                      dataIndex: 'rating',
+                      key: 'rating',
+                      render: (rating: number | string) => `${Number(rating ?? 0).toFixed(1)} ⭐`,
+                    },
                     {
                       title: '状态',
                       dataIndex: 'status',

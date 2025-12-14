@@ -16,8 +16,9 @@ export default defineConfig({
     allowedHosts: [
       'localhost',
       '127.0.0.1',
-      '.sandbox.novita.ai',
-      '.e2b.dev',
+      '::1',
+      '*.sandbox.novita.ai',
+      '*.e2b.dev',
     ],
     proxy: {
       '/api': {
